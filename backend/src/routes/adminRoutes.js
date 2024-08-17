@@ -1,9 +1,10 @@
-
 const express = require('express');
-const { getAllUsers, createUser } = require('../controllers/adminController');
 const router = express.Router();
+const adminController = require('../controllers/adminController');
 
-router.get('/users', getAllUsers);
-router.post('/create', createUser);
+router.get('/users', adminController.getAllUsers);
+router.post('/create', adminController.createUser);
+router.post('/create-classroom', adminController.createClassroom);
+router.get('/classrooms', adminController.getClassrooms);
 
 module.exports = router;

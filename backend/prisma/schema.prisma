@@ -9,7 +9,46 @@ generator client {
 
 model User {
   id       Int      @id @default(autoincrement())
+  name  String? @unique
   email    String   @unique
   password String
   role     String   // 'Principal', 'teacher', 'student'
+
+  // Relationships
+  classrooms  Classroom[] @relation("UserClassrooms")
+  timetables  Timetable[] @relation("TeacherTimetables")
+}
+
+model Classroom {
+  id        Int         @id @default(autoincrement())
+  class_name      String
+  startTime DateTime
+  endTime   DateTime
+  days      String[]    // Array of days the classroom will be in session (e.g., ["Monday", "Wednesday", "Saturday"])
+
+  // Relationships
+  principalId Int
+  principal   User       @relation("UserClassrooms", fields: [principalId], references: [id])
+  timetables  Timetable[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Timetable {
+  id          Int         @id @default(autoincrement())
+  subject     String
+  startTime   DateTime    // Start time of the period
+  endTime     DateTime    // End time of the period
+
+  // Relationships
+  teacherId   Int
+  teacher     User        @relation("TeacherTimetables", fields: [teacherId], references: [id])
+  classroomId Int
+  classroom   Classroom   @relation(fields: [classroomId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([startTime, endTime, classroomId])  // Ensures no overlapping periods in the same classroom
 }
