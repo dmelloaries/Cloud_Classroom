@@ -116,7 +116,6 @@ function AdminDashboard() {
   const [endTime, setEndTime] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [classroomId, setClassroomId] = useState("");
-  
 
   const navigate = useNavigate();
 
@@ -124,11 +123,14 @@ function AdminDashboard() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("https://cloud-classroom.onrender.com/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
           navigate("/");
@@ -150,7 +152,7 @@ function AdminDashboard() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "https://cloud-classroom.onrender.com/api/admin/classrooms",
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/classrooms`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -178,14 +180,17 @@ function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://cloud-classroom.onrender.com/api/admin/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, email, password, role }),
-      });
+      const response = await fetch(
+       `${import.meta.env.VITE_BACKEND_URL}/api/admin/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, email, password, role }),
+        }
+      );
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
         navigate("/login");
@@ -220,7 +225,7 @@ function AdminDashboard() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `https://cloud-classroom.onrender.com/api/admin/users/${userId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`,
           {
             method: "DELETE",
             headers: {
@@ -251,7 +256,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://cloud-classroom.onrender.com/api/admin/users/${userId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -297,7 +302,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "https://cloud-classroom.onrender.com/api/admin/assign-student",
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/assign-student`,
         {
           method: "POST",
           headers: {
@@ -329,7 +334,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "https://cloud-classroom.onrender.com/api/admin/create-classroom",
+       `${import.meta.env.VITE_BACKEND_URL}/api/admin/create-classroom`,
         {
           method: "POST",
           headers: {
@@ -532,11 +537,9 @@ function AdminDashboard() {
 
       case "dashboard":
         return (
-            <>
+          <>
             <Cards></Cards>
-           
-            </>
-
+          </>
         );
 
       case "teachers":

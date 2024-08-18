@@ -1,29 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Typography, List, ListItem, ListItemText, Box } from '@mui/material';
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Box,
+} from "@mui/material";
 
 function StudentDashboard() {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    
     const fetchStudents = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch('https://cloud-classroom.onrender.com/api/student/users', {
-          headers: {
-            'Authorization': `Bearer ${token}`, 
-            'Content-Type': 'application/json'
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/student/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch student data');
+          throw new Error("Failed to fetch student data");
         }
 
         const data = await response.json();
-        setStudents(data.students.filter(student => student.role === 'student'));
+        setStudents(
+          data.students.filter((student) => student.role === "student")
+        );
       } catch (error) {
-        console.error('Error fetching student data:', error);
+        console.error("Error fetching student data:", error);
       }
     };
 
@@ -32,13 +43,17 @@ function StudentDashboard() {
 
   return (
     <Container>
-      <Typography variant="h4" className="mt-10">Student Dashboard</Typography>
-      <Typography variant="body1" className="mt-4">Welcome to the student's dashboard.</Typography>
+      <Typography variant="h4" className="mt-10">
+        Student Dashboard
+      </Typography>
+      <Typography variant="body1" className="mt-4">
+        Welcome to the student's dashboard.
+      </Typography>
 
       <Box mt={4}>
         <Typography variant="h6">Student List</Typography>
         <List>
-          {students.map(student => (
+          {students.map((student) => (
             <ListItem key={student.id}>
               <ListItemText
                 primary={student.name}
