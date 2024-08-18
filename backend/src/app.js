@@ -14,9 +14,19 @@ const {
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173","https://cloud-classroom-frontend-c9hd.onrender.com"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
 
 app.use(express.json());
+app.use("/",(req,res)=>{
+    res.json("server is alive");
+})
 
 app.use("/api/auth", authRoutes);
 
