@@ -1,11 +1,11 @@
 import Navbar from '../components/Navbar';
-import Login from '../components/Login';
+import Landing from './Landing';
 
 function Home() {
   return (
     <>
       <Navbar />
-   
+     <Landing></Landing>
     </>
   );
 }
