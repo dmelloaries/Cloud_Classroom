@@ -91,6 +91,8 @@ const darkTheme = createTheme({
   },
 });
 
+import { useNavigate } from "react-router-dom";
+
 function AdminDashboard() {
   const [teachers, setTeachers] = useState([]);
   const [students, setStudents] = useState([]);
@@ -103,18 +105,29 @@ function AdminDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [classrooms, setClassrooms] = useState([]);
 
-  
   const [subject, setSubject] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [classroomId, setClassroomId] = useState("");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/admin/users");
-        if (!response.ok) throw new Error("Network response was not ok");
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3000/api/admin/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          navigate("/"); 
+        } else if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
         const data = await response.json();
         setTeachers(data.teachers);
         setStudents(data.students);
@@ -123,15 +136,26 @@ function AdminDashboard() {
       }
     };
     fetchUsers();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchClassrooms = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:3000/api/admin/classrooms"
+          "http://localhost:3000/api/admin/classrooms",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
         const data = await response.json();
         setClassrooms(data);
       } catch (error) {
@@ -141,17 +165,26 @@ function AdminDashboard() {
     if (selectedView === "classrooms") {
       fetchClassrooms();
     }
-  }, [selectedView]);
+  }, [selectedView, navigate]);
 
-const handleCreateUser = async (e) => {
+  const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:3000/api/admin/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }), 
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, email, password, role }),
       });
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login"); 
+      } else if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
       const newUser = await response.json();
       if (role === "teacher") {
         setTeachers([...teachers, newUser]);
@@ -165,16 +198,19 @@ const handleCreateUser = async (e) => {
       console.error("Failed to create user:", error);
     }
   };
-  
 
   const handleCreateClassroom = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         "http://localhost:3000/api/admin/create-classroom",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             subject,
             startTime,
@@ -184,7 +220,12 @@ const handleCreateUser = async (e) => {
           }),
         }
       );
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
       const newClassroom = await response.json();
       console.log("Classroom created:", newClassroom);
       setSubject("");
@@ -200,6 +241,7 @@ const handleCreateUser = async (e) => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));

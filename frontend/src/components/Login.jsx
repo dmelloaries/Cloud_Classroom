@@ -53,6 +53,10 @@ export default function Login() {
       });
       const data = await response.json();
       if (response.ok) {
+        
+        localStorage.setItem('token', data.token);
+  
+        
         if (data.role === 'admin') {
           window.location.href = '/admin';
         } else if (data.role === 'teacher') {
@@ -69,7 +73,7 @@ export default function Login() {
       setOpenDialog(true);
     }
   };
-
+  
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };

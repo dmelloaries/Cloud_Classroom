@@ -19,24 +19,26 @@
 //   });
 
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 async function main() {
-  try {
-    const user = await prisma.user.update({
-      where: {
-        email: ' principal@classroom.com', 
-      },
-      data: {
-        name: 'PrinciPal_Admin', 
-      },
-    });
-    console.log('User updated successfully:', user);
-  } catch (e) {
-    console.error('Error updating user:', e);
-  } finally {
-    await prisma.$disconnect();
-  }
+  // Hash the password before storing it
+  const hashedPassword = await bcrypt.hash('Admin', 10);
+
+  await prisma.user.create({
+    data: {
+      name: 'PrinciPal_Admin',
+      email: 'principal@classroom.com',
+      password: hashedPassword,  // Store the hashed password
+      role: 'admin',
+    },
+  });
+  console.log('Admin user created');
 }
 
-main();
+main()
+  .catch((e) => console.error(e))
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

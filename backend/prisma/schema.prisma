@@ -1,3 +1,58 @@
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// model User {
+//   id       Int      @id @default(autoincrement())
+//   name  String? @unique
+//   email    String   @unique
+//   password String
+//   role     String   // 'Principal', 'teacher', 'student'
+
+//   // Relationships
+//   classrooms  Classroom[] @relation("UserClassrooms")
+//   timetables  Timetable[] @relation("TeacherTimetables")
+// }
+
+// model Classroom {
+//   id        Int         @id @default(autoincrement())
+//   class_name      String
+//   startTime DateTime
+//   endTime   DateTime
+//   days      String[]    // Array of days the classroom will be in session (e.g., ["Monday", "Wednesday", "Saturday"])
+
+//   // Relationships
+//   principalId Int
+//   principal   User       @relation("UserClassrooms", fields: [principalId], references: [id])
+//   timetables  Timetable[]
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// model Timetable {
+//   id          Int         @id @default(autoincrement())
+//   subject     String
+//   startTime   DateTime    // Start time of the period
+//   endTime     DateTime    // End time of the period
+
+//   // Relationships
+//   teacherId   Int
+//   teacher     User        @relation("TeacherTimetables", fields: [teacherId], references: [id])
+//   classroomId Int
+//   classroom   Classroom   @relation(fields: [classroomId], references: [id])
+
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+
+//   @@unique([startTime, endTime, classroomId])  // Ensures no overlapping periods in the same classroom
+// }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -6,10 +61,9 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-
 model User {
   id       Int      @id @default(autoincrement())
-  name  String? @unique
+  name     String?  @unique
   email    String   @unique
   password String
   role     String   // 'Principal', 'teacher', 'student'
@@ -17,19 +71,25 @@ model User {
   // Relationships
   classrooms  Classroom[] @relation("UserClassrooms")
   timetables  Timetable[] @relation("TeacherTimetables")
+  teacherId   Int?        // For students, track which teacher they are assigned to
+  teacher     User?       @relation("TeacherStudents", fields: [teacherId], references: [id])
+  students    User[]      @relation("TeacherStudents") // For teachers, list of assigned students
+
+  classroomsEnrolled Classroom[] @relation("ClassroomStudents")
 }
 
 model Classroom {
   id        Int         @id @default(autoincrement())
-  class_name      String
+  class_name String
   startTime DateTime
   endTime   DateTime
-  days      String[]    // Array of days the classroom will be in session (e.g., ["Monday", "Wednesday", "Saturday"])
+  days      String     
 
   // Relationships
   principalId Int
   principal   User       @relation("UserClassrooms", fields: [principalId], references: [id])
   timetables  Timetable[]
+  students    User[]     @relation("ClassroomStudents")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
