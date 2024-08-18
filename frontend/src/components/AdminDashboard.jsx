@@ -34,6 +34,7 @@ import {
   GroupAdd as GroupAddIcon,
   Class as ClassIcon,
 } from "@mui/icons-material";
+import SaveAsIcon from "@mui/icons-material/SaveAs";
 
 const drawerWidth = 240;
 
@@ -105,6 +106,9 @@ function AdminDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [classrooms, setClassrooms] = useState([]);
 
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+
   const [subject, setSubject] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -124,7 +128,7 @@ function AdminDashboard() {
         });
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
-          navigate("/"); 
+          navigate("/");
         } else if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -181,7 +185,7 @@ function AdminDashboard() {
       });
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
-        navigate("/login"); 
+        navigate("/login");
       } else if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -196,6 +200,38 @@ function AdminDashboard() {
       setPassword("");
     } catch (error) {
       console.error("Failed to create user:", error);
+    }
+  };
+
+  const handleAssignStudent = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:3000/api/admin/assign-student",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            studentEmail: selectedStudent,
+            teacherEmail: selectedTeacher,
+          }),
+        }
+      );
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      console.log("Student assigned successfully");
+      setSelectedStudent("");
+      setSelectedTeacher("");
+    } catch (error) {
+      console.error("Failed to assign student:", error);
     }
   };
 
@@ -241,7 +277,6 @@ function AdminDashboard() {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -330,6 +365,62 @@ function AdminDashboard() {
 
   const renderContent = () => {
     switch (selectedView) {
+      case "assignStudents":
+        return (
+          <>
+            <Typography variant="h6">Assign Students to Teachers</Typography>
+            <Card sx={{ mt: 3 }}>
+              <CardContent>
+                <Box
+                  component="form"
+                  onSubmit={handleAssignStudent}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <TextField
+                    select
+                    label="Select Teacher"
+                    value={selectedTeacher}
+                    onChange={(e) => setSelectedTeacher(e.target.value)}
+                    fullWidth
+                    required
+                  >
+                    {teachers.map((teacher) => (
+                      <MenuItem key={teacher.id} value={teacher.email}>
+                        {teacher.name} - {teacher.email}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    select
+                    label="Select Student"
+                    value={selectedStudent}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    fullWidth
+                    required
+                  >
+                    {students.map((student) => (
+                      <MenuItem key={student.id} value={student.email}>
+                        {student.name} - {student.email}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{ alignSelf: "flex-end" }}
+                  >
+                    Assign Student
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </>
+        );
+
       case "teachers":
         return renderTable(teachers, "Teachers");
       case "students":
@@ -438,20 +529,17 @@ function AdminDashboard() {
                     gap: 2,
                   }}
                 >
-                    <TextField
+                  <TextField
                     label="Name"
                     variant="outlined"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    
-                    
                   />
                   <TextField
                     label="Email"
                     variant="outlined"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                   
                     required
                   />
                   <TextField
@@ -460,7 +548,6 @@ function AdminDashboard() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    
                     required
                   />
                   <TextField
@@ -468,7 +555,6 @@ function AdminDashboard() {
                     label="Role"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    
                     required
                   >
                     <MenuItem value="teacher">Teacher</MenuItem>
@@ -501,6 +587,24 @@ function AdminDashboard() {
           <DashboardIcon />
         </ListItemIcon>
         <ListItemText primary="Dashboard" />
+      </ListItem>
+
+      {/* <ListItem button onClick={() => setSelectedView("AssignStudents")}>
+        <ListItemIcon>
+          <SaveAsIcon></SaveAsIcon>
+        </ListItemIcon>
+        <ListItemText primary="Assign Students" />
+      </ListItem> */}
+
+      <ListItem
+        button
+        onClick={() => setSelectedView("assignStudents")}
+        selected={selectedView === "assignStudents"}
+      >
+        <ListItemIcon>
+          <SaveAsIcon />
+        </ListItemIcon>
+        <ListItemText primary="Assign Students" />
       </ListItem>
 
       <List>
