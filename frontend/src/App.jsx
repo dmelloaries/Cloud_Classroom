@@ -6,6 +6,7 @@ import StudentPage from './pages/StudentPage';
 import Login from './components/Login';
 
 function App() {
+  console.log(import.meta.env.VITE_BACKEND_URL);
   return (
     <Router>
       <Routes>
