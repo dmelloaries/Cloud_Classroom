@@ -50,33 +50,66 @@ exports.getTeacherDashboard = async (req, res) => {
       res.status(500).json({ error: "An error occurred while fetching the dashboard" });
     }
   };
+  exports.createTimetable = async (req, res) => {
+    const { subject, startTime, endTime, teacherId, classroomId } = req.body;
   
+    try {
+      // Ensure startTime and endTime are valid Date objects
+      const startDate = new Date(startTime);
+      const endDate = new Date(endTime);
   
-exports.createTimetable = async (req, res) => {
-  const { subject, startTime, endTime, teacherId, classroomId } = req.body;
-  try {
-    // the timetable period is within the classroom time range
-    const classroom = await prisma.classroom.findUnique({ where: { id: classroomId } });
-
-    if (new Date(startTime) < new Date(classroom.startTime) || new Date(endTime) > new Date(classroom.endTime)) {
-      return res.status(400).json({ error: "Timetable period must be within classroom's start and end time." });
+      // Check for valid date range
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({ error: "Invalid date format." });
+      }
+  
+      // Find the classroom
+      const classroom = await prisma.classroom.findUnique({ where: { id: classroomId } });
+  
+      if (!classroom) {
+        return res.status(404).json({ error: "Classroom not found." });
+      }
+  
+      // Check if the timetable period is within the classroom's time range
+      const classroomStartDate = new Date(classroom.startTime);
+      const classroomEndDate = new Date(classroom.endTime);
+  
+      if (startDate < classroomStartDate || endDate > classroomEndDate) {
+        return res.status(400).json({ error: "Timetable period must be within classroom's start and end time." });
+      }
+  
+      // Check for overlapping timetables in the same classroom
+      const overlappingTimetable = await prisma.timetable.findFirst({
+        where: {
+          classroomId,
+          OR: [
+            { startTime: { lt: endDate }, endTime: { gt: startDate } }
+          ],
+        },
+      });
+  
+      if (overlappingTimetable) {
+        return res.status(400).json({ error: "The timetable overlaps with an existing timetable in the classroom." });
+      }
+  
+      // Create the new timetable
+      const timetable = await prisma.timetable.create({
+        data: {
+          subject,
+          startTime: startDate,
+          endTime: endDate,
+          teacherId,
+          classroomId,
+        },
+      });
+  
+      res.json(timetable);
+    } catch (error) {
+      console.error("Error creating timetable:", error); // Log error details
+      res.status(500).json({ error: "Internal server error." });
     }
-
-    const timetable = await prisma.timetable.create({
-      data: {
-        subject,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        teacherId,
-        classroomId,
-      },
-    });
-    res.json(timetable);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
+  };
+  
 exports.getTimetables = async (req, res) => {
   const { classroomId } = req.params;
   const timetables = await prisma.timetable.findMany({

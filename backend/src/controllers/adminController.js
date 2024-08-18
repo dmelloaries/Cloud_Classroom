@@ -34,7 +34,7 @@ exports.createUser = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,  
-      { expiresIn: '1h' }  
+      { expiresIn: '6h' }  
     );
 
     res.status(201).json({ user, token });
@@ -117,6 +117,67 @@ exports.assignStudentToTeacher = async (req, res) => {
     } catch (error) {
       console.error("Error assigning student to teacher:", error);
       res.status(500).json({ error: "An error occurred while assigning the student to the teacher" });
+    }
+  };
+  
+
+  exports.updateUser = async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password, role } = req.body;
+  
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+      });
+  
+      if (!existingUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      // If the password is provided, hash it
+      let hashedPassword;
+      if (password) {
+        hashedPassword = await bcrypt.hash(password, 10);
+      }
+  
+      const updatedUser = await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: {
+          name: name || existingUser.name,
+          email: email || existingUser.email,
+          password: hashedPassword || existingUser.password,
+          role: role || existingUser.role,
+        },
+      });
+  
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "An error occurred while updating the user" });
+    }
+  };
+
+  
+  exports.deleteUser = async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+      });
+  
+      if (!existingUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      await prisma.user.delete({
+        where: { id: parseInt(id) },
+      });
+  
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "An error occurred while deleting the user" });
     }
   };
   

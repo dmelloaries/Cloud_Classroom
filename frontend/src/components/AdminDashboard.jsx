@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import Cards from "./Cards";
+
 import {
   Container,
   Typography,
@@ -101,7 +103,7 @@ function AdminDashboard() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("teacher");
-  const [selectedView, setSelectedView] = useState("createUser");
+  const [selectedView, setSelectedView] = useState("creatuser");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [classrooms, setClassrooms] = useState([]);
@@ -114,6 +116,7 @@ function AdminDashboard() {
   const [endTime, setEndTime] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [classroomId, setClassroomId] = useState("");
+  
 
   const navigate = useNavigate();
 
@@ -203,6 +206,92 @@ function AdminDashboard() {
     }
   };
 
+  const handleEditUser = (user, role) => {
+    setName(user.name);
+    setEmail(user.email);
+    setPassword(""); // Clear password field
+    setRole(role);
+    setSelectedView("editUser");
+    localStorage.setItem("userId", user.id);
+  };
+
+  const handleDeleteUser = async (userId, role) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `http://localhost:3000/api/admin/users/${userId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        if (role === "teacher") {
+          setTeachers(teachers.filter((teacher) => teacher.id !== userId));
+        } else {
+          setStudents(students.filter((student) => student.id !== userId));
+        }
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+      }
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    const userId = localStorage.getItem("userId");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3000/api/admin/users/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, email, password, role }),
+        }
+      );
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const updatedUser = await response.json();
+      if (role === "teacher") {
+        setTeachers(
+          teachers.map((teacher) =>
+            teacher.id === userId ? updatedUser : teacher
+          )
+        );
+      } else {
+        setStudents(
+          students.map((student) =>
+            student.id === userId ? updatedUser : student
+          )
+        );
+      }
+      setName("");
+      setEmail("");
+      setPassword("");
+      setRole("teacher");
+      setSelectedView("teachers");
+      localStorage.removeItem("userId");
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+
   const handleAssignStudent = async (e) => {
     e.preventDefault();
     try {
@@ -248,11 +337,11 @@ function AdminDashboard() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            subject,
+            class_name: subject,
             startTime,
             endTime,
-            teacherId,
-            classroomId,
+            days: classroomId,
+            teacherEmail: teacherId,
           }),
         }
       );
@@ -282,8 +371,7 @@ function AdminDashboard() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  const renderTable = (data, title) => (
+  const renderTable = (data, title, role) => (
     <TableContainer component={Paper} sx={{ mt: 3 }}>
       <Typography variant="h6" sx={{ p: 2 }}>
         {title}
@@ -291,9 +379,11 @@ function AdminDashboard() {
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>ID</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Email</TableCell>
-            <TableCell>ID</TableCell>
+
+            <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -301,9 +391,27 @@ function AdminDashboard() {
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((user) => (
               <TableRow key={user.id}>
+                <TableCell>{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.id}</TableCell>
+
+                <TableCell align="right">
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => handleEditUser(user, role)}
+                    sx={{ mr: 1 }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => handleDeleteUser(user.id, role)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
         </TableBody>
@@ -339,14 +447,15 @@ function AdminDashboard() {
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((classroom) => (
               <TableRow key={classroom.id}>
-                <TableCell>{classroom.subject}</TableCell>
+                <TableCell>{classroom.class_name}</TableCell>
                 <TableCell>
                   {new Date(classroom.startTime).toLocaleString()}
                 </TableCell>
                 <TableCell>
                   {new Date(classroom.endTime).toLocaleString()}
                 </TableCell>
-                <TableCell>{classroom.teacherId}</TableCell>
+                {/* <TableCell>{classroom.teacherId}</TableCell> */}
+                <TableCell>{classroom.principalId}</TableCell>
               </TableRow>
             ))}
         </TableBody>
@@ -421,12 +530,79 @@ function AdminDashboard() {
           </>
         );
 
+      case "dashboard":
+        return (
+            <>
+            <Cards></Cards>
+           
+            </>
+
+        );
+
       case "teachers":
         return renderTable(teachers, "Teachers");
       case "students":
         return renderTable(students, "Students");
       case "classrooms":
         return renderClassroomTable();
+      case "editUser":
+        return (
+          <>
+            <Typography variant="h6">Edit User</Typography>
+            <Card sx={{ mt: 3 }}>
+              <CardContent>
+                <Box
+                  component="form"
+                  onSubmit={handleUpdateUser}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <TextField
+                    label="Name"
+                    variant="outlined"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <TextField
+                    label="Email"
+                    variant="outlined"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <TextField
+                    label="Password"
+                    variant="outlined"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <TextField
+                    select
+                    label="Role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    required
+                  >
+                    <MenuItem value="teacher">Teacher</MenuItem>
+                    <MenuItem value="student">Student</MenuItem>
+                  </TextField>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{ alignSelf: "flex-end" }}
+                  >
+                    Update User
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </>
+        );
+
       case "createClassroom":
         return (
           <>
@@ -445,7 +621,7 @@ function AdminDashboard() {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label="Subject"
+                        label="Classroom Name"
                         variant="outlined"
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
@@ -483,7 +659,7 @@ function AdminDashboard() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label="Teacher ID"
+                        label="Teacher Email"
                         variant="outlined"
                         value={teacherId}
                         onChange={(e) => setTeacherId(e.target.value)}
@@ -493,9 +669,9 @@ function AdminDashboard() {
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
-                        label="Classroom ID"
+                        label="Days (e.g., Monday, Wednesday, Friday)"
                         variant="outlined"
-                        value={classroomId}
+                        value={classroomId} // This is now used to store days
                         onChange={(e) => setClassroomId(e.target.value)}
                         fullWidth
                         required
@@ -588,13 +764,6 @@ function AdminDashboard() {
         </ListItemIcon>
         <ListItemText primary="Dashboard" />
       </ListItem>
-
-      {/* <ListItem button onClick={() => setSelectedView("AssignStudents")}>
-        <ListItemIcon>
-          <SaveAsIcon></SaveAsIcon>
-        </ListItemIcon>
-        <ListItemText primary="Assign Students" />
-      </ListItem> */}
 
       <ListItem
         button

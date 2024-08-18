@@ -1,11 +1,13 @@
 // frontend/src/pages/AdminPage.jsx
-import Navbar from '../components/Navbar';
+
 import AdminDashboard from '../components/AdminDashboard';
+import AdminNavbar from '../components/AdminNavbar';
 
 function AdminPage() {
   return (
     <>
-      <Navbar />
+    <AdminNavbar></AdminNavbar>
+     
       <AdminDashboard />
     </>
   );

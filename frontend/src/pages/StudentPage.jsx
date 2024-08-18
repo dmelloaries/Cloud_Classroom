@@ -1,11 +1,12 @@
 // frontend/src/pages/StudentPage.jsx
-import Navbar from '../components/Navbar';
+import AdminNavbar from '../components/AdminNavbar';
+
 import StudentDashboard from '../components/StudentDashboard';
 
 function StudentPage() {
   return (
     <>
-      <Navbar />
+      <AdminNavbar></AdminNavbar>
       <StudentDashboard />
     </>
   );
