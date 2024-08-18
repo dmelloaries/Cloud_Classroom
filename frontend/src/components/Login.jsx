@@ -48,7 +48,8 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://cloud-classroom-frontend-c9hd.onrender.com/api/auth/login', {
+      console.log(import.meta.env.VITE_BACKEND_URL);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
