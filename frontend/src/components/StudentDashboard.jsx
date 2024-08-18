@@ -9,7 +9,7 @@ function StudentDashboard() {
     const fetchStudents = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch('http://localhost:3000/api/student/users', {
+        const response = await fetch('https://cloud-classroom.onrender.com/api/student/users', {
           headers: {
             'Authorization': `Bearer ${token}`, 
             'Content-Type': 'application/json'

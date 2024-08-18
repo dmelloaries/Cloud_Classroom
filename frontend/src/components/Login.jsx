@@ -15,7 +15,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-
+import { useNavigate } from 'react-router-dom';
 
 const darkTheme = createTheme({
   palette: {
@@ -43,6 +43,8 @@ export default function Login() {
   const [openDialog, setOpenDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const navigate = useNavigate(); 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -53,16 +55,14 @@ export default function Login() {
       });
       const data = await response.json();
       if (response.ok) {
-        
         localStorage.setItem('token', data.token);
-  
-        
+
         if (data.role === 'admin') {
-          window.location.href = '/admin';
+          navigate('/admin'); 
         } else if (data.role === 'teacher') {
-          window.location.href = '/teacher';
+          navigate('/teacher');
         } else {
-          window.location.href = '/student';
+          navigate('/student'); 
         }
       } else {
         setErrorMessage(data.message);
@@ -73,7 +73,7 @@ export default function Login() {
       setOpenDialog(true);
     }
   };
-  
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
@@ -151,7 +151,6 @@ export default function Login() {
         </Box>
       </Container>
 
-      
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Error</DialogTitle>
         <DialogContent>

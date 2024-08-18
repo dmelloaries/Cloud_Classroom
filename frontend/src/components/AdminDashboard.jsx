@@ -124,7 +124,7 @@ function AdminDashboard() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/api/admin/users", {
+        const response = await fetch("https://cloud-classroom.onrender.com/api/admin/users", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -150,7 +150,7 @@ function AdminDashboard() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:3000/api/admin/classrooms",
+          "https://cloud-classroom.onrender.com/api/admin/classrooms",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/api/admin/create", {
+      const response = await fetch("https://cloud-classroom.onrender.com/api/admin/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -220,7 +220,7 @@ function AdminDashboard() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://localhost:3000/api/admin/users/${userId}`,
+          `https://cloud-classroom.onrender.com/api/admin/users/${userId}`,
           {
             method: "DELETE",
             headers: {
@@ -251,7 +251,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3000/api/admin/users/${userId}`,
+        `https://cloud-classroom.onrender.com/api/admin/users/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -297,7 +297,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:3000/api/admin/assign-student",
+        "https://cloud-classroom.onrender.com/api/admin/assign-student",
         {
           method: "POST",
           headers: {
@@ -329,7 +329,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:3000/api/admin/create-classroom",
+        "https://cloud-classroom.onrender.com/api/admin/create-classroom",
         {
           method: "POST",
           headers: {
